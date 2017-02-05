@@ -1,0 +1,3 @@
+[submodule "SwiftDIHLP"]
+	path = SwiftDIHLP
+	url = git@github.com:alexbasson/SwiftDIHLP.git
