@@ -10,3 +10,6 @@
 [submodule "SwiftDIWeb"]
 	path = SwiftDIWeb
 	url = git@github.com:alexbasson/SwiftDIWeb.git
+[submodule "SwiftDIApp"]
+	path = SwiftDIApp
+	url = git@github.com:alexbasson/SwiftDIApp.git
