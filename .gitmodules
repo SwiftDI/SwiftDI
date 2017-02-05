@@ -4,3 +4,6 @@
 [submodule "SwiftDIWebRepositories"]
 	path = SwiftDIWebRepositories
 	url = git@github.com:alexbasson/SwiftDIWebRepositories.git
+[submodule "SwiftDIAPI"]
+	path = SwiftDIAPI
+	url = git@github.com:alexbasson/SwiftDIAPI.git
