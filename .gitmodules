@@ -1,3 +1,6 @@
 [submodule "SwiftDIHLP"]
 	path = SwiftDIHLP
 	url = git@github.com:alexbasson/SwiftDIHLP.git
+[submodule "SwiftDIWebRepositories"]
+	path = SwiftDIWebRepositories
+	url = git@github.com:alexbasson/SwiftDIWebRepositories.git
