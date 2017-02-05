@@ -7,3 +7,6 @@
 [submodule "SwiftDIAPI"]
 	path = SwiftDIAPI
 	url = git@github.com:alexbasson/SwiftDIAPI.git
+[submodule "SwiftDIWeb"]
+	path = SwiftDIWeb
+	url = git@github.com:alexbasson/SwiftDIWeb.git
