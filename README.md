@@ -1,44 +1,78 @@
 # SwiftDI
 
-## Some background on Swift dependency managers
+With the release of Swift as an open-source language with a Linux runtime, Swift joins Java and JavaScript as a language that can be used both in a front-end context (iOS apps) as well as on the server. `SwiftDI` is an attempt to demonstrate one way of implementing [*Dependency Inversion*](https://en.wikipedia.org/wiki/Dependency_inversion_principle) (DI) in Swift to achieve the goal of a single high-level policy module containing all business logic that can be deployed in a range of application settings, including an iOS app, a web app, and a RESTful API.
 
-Implementing dependency-inversion patterns in Swift requires a couple of extra steps relative to other development environments such as Java or Ruby. Maven and Bundler, respectively, make dependency management easy in those two languages, but in Swift, things are more complicated. In part, this is due the existence of competing dependency managers for the Swift ecosystem. In particular, we'll have to use two:
+## Installation
 
-- Swift Package Manager: This is the official package manager for Swift, but it's still very new (under a year old), and as such, it lacks many useful features. For example, it offers incomplete support for local package development. Moreover, iOS apps do not yet support the SPM, by which I mean there is no official way to use the Swift Package Manager to tell an iOS app about its dependencies.
-- Cocoapods: This is an unofficial package manager for Objective-C and Swift packages. It ships as a Ruby gem. It supports iOS, and it supports local package development. However, its package-creation tool appears to be broken.
-
-For this project, we'll employ a hybrid approach: We'll make our high-level policy module using the Swift Package Manager, and then we'll retrofit it as a Cocoapod, which we'll then import into our iOS app.
-
-## Workstation setup
+### Workstation setup
 
 - Download the latest Xcode from the [Mac App Store](https://itunes.apple.com/us/app/xcode/id497799835?mt=12).
 - Launch Xcode and finish the installation steps.
-- Install Cocoapods:
+- To build the iOS app, you'll need to install Cocoapods:
 
     ```bash
     $ gem install cocoapods
     ```
+
+- To run the web/API apps, you'll need to install [Docker for Mac](https://www.docker.com/products/docker).
     
+### Project setup
+
+- Clone the project repo and cd into it:
+
+    ```bash
+    $ git clone https://github.com/alexbasson/SwiftDI.git
+    $ cd SwiftDI
+    ```
+
+- Install the Docker container used for this project:
+
+    ```bash
+    $ docker run -itv $(pwd):/projects --name projects -w /projects -p 8089:8089 -p 8090:8090 -p 5984:5984 twostraws/server-side-swift /bin/bash
+    ```
+
+- `SwiftDI` is merely a container to hold the various projects, which are added as git submodules. Install those projects:
+
+    ```bash
+    $ git submodule update --init
+    ```
+
+    If you examine the contents of the `SwiftDI` directory, you should now see the following five projects:
+
+      - [`SwiftDIHLP`](https://github.com/alexbasson/SwiftDIHLP): The high level policy module containing all of the reusable business logic.
+      - [`SwiftDIApp`](https://github.com/alexbasson/SwiftDIAPI): An iOS app using `SwiftDIHLP` for all high level policy.
+      - [`SwiftDIWeb`](https://github.com/alexbasson/SwiftDIWeb): A web app, built using the [Kitura](http://www.kitura.io) web framework, using `SwiftDIHLP` for all high level policy.
+      - [`SwiftDIAPI`](https://github.com/alexbasson/SwiftDIApp): A RESTful HTTP API, built using the [Kitura](http://www.kitura.io) web framework, using `SwiftDIHLP` for all high level policy.
+      - [`SwiftDIWebRepositories`](https://github.com/alexbasson/SwiftDIWebRepositories): A library containing repository implementations for use in the web-based projects.
+
+### Building and running the projects
+
+See detailed instructions in the respective `README`'s for each project.
+
+# How To Replicate The DI Patterns Demonstrated In `SwiftDI`
+
+
+## Some background on Swift dependency managers
+
+Implementing dependency-inversion patterns in Swift requires a couple of extra steps relative to other development environments such as Java or Ruby. Maven and Bundler, respectively, make dependency management easy in those two languages, but in Swift, things are more complicated. In part, this is due the existence of competing dependency managers for the Swift ecosystem. In particular, we'll have to use two:
+
+- Swift Package Manager: This is the official package manager for Swift, but it's still very new (under a year old), and as such, it lacks many useful features. For example, it offers incomplete support for local package development. Moreover, iOS apps do not yet support SwiftPM, by which I mean there is no official way to use the SwiftPM to tell an iOS app about its dependencies.
+- Cocoapods: This is an unofficial package manager for Objective-C and Swift packages. It ships as a Ruby gem. It supports iOS, and it supports local package development. However, its package-creation tool appears to be broken.
+
+For this project, we'll employ a hybrid approach: We'll make our high-level policy module using the Swift Package Manager, and then we'll retrofit it as a Cocoapod, which we'll then import into our iOS app.
+
 
 ## Project Creation
 
 We'll call this project `SwiftDI`; feel free to use whatever name you want, and replace all mentions of "SwiftDI" with your project name.
 
-1. Create a new parent directory to hold the `.xcodeproj` projects and the `.xcworkspace`s that will contain them.
+1. Create a new parent directory to hold the various related projects.
 
     ```bash
     $ mkdir SwiftDI
-    ```
-
-1. Initialize a git repository in the parent directory.
-
-    ```bash
     $ cd SwiftDI
-    $ git init
     ```
 
-1. Add the Swift `.gitignore` [from Github](https://github.com/github/gitignore/raw/master/Swift.gitignore)
-    
 1. For the High Level Policy (HLP):
 
     1. Create a directory for the high level policy and `cd` into it:
@@ -47,20 +81,20 @@ We'll call this project `SwiftDI`; feel free to use whatever name you want, and 
         $ mkdir SwiftDIHLP
         $ cd SwiftDIHLP        
         ```
-        
-    1. Create a Swift package and corresponding Xcode project:
+
+    1. Create a Swift package and corresponding Xcode project (this also initializes `SwiftDIHLP` as a git repository):
 
         ```bash
         $ swift package init
         $ swift package generate-xcodeproj
         ```
-        
+
     1. Initialize a Podfile:
 
         ```bash
         $ pod init
         ```
-        
+
     1. Edit `Podfile` to pull `Quick` and `Nimble` into the HLP module:
 
         ```ruby
@@ -76,22 +110,22 @@ We'll call this project `SwiftDI`; feel free to use whatever name you want, and 
 
         end        
         ```
-        
+
         Install the pods:
-        
+
         ```
         $ pod install
         ```
-        
+
         **N.B.** You may get some warnings regarding the `LD_RUNPATH_SEARCH_PATHS`. To fix this, open up `SwiftDIHLP.xcworkspace` in Xcode, and for each of the two targets under the `SwiftDIHLP` project (namely `SwiftDIHLP` and `SwiftDIHLPTests`), do the following:
-        
+
         - Click on "Build Settings"
         - Search for "LD\_RUNPATH\_SEARCH\_PATHS"
         - Double-click on the value for the setting
         - Add "$(inherited)" to the existing values
 
         Once you've done this for each of the targets, run `$ pod install` again; you should see no warnings.
-        
+
     1. Create `SwiftDIHLP.podspec` and edit it to look something like this:
 
         ```ruby
@@ -107,7 +141,7 @@ We'll call this project `SwiftDI`; feel free to use whatever name you want, and 
 		    s.source_files = 'Sources/**/*.swift'
 		end
         ```
-        
+
         That should complete the initial creation of the high-level policy module; move on to creating the app.        
 
 1. For the iOS App, create a new Xcode project (`SwiftDIApp`).
@@ -122,24 +156,24 @@ We'll call this project `SwiftDI`; feel free to use whatever name you want, and 
     $ cd SwiftDI/SwiftDIApp
     $ pod init
     ```
-    
+
 1. Edit the `Podfile` to pull in the `SwiftDIHLP` cocoapod, as well as `Quick` and `Nimble` for testing:
 
     ```ruby
 	platform :ios, '9.0'
-	
+
 	target 'SwiftDIApp' do
 	  use_frameworks!
-	
+
 	  pod 'SwiftDIHLP', path: '../SwiftDIHLP'
-	
+
 	  target 'SwiftDIAppTests' do
 	    inherit! :search_paths
-	
+
 	    pod 'Quick'
 	    pod 'Nimble'
 	  end
-	
+
 	end
     ```
 
@@ -148,9 +182,9 @@ We'll call this project `SwiftDI`; feel free to use whatever name you want, and 
     ```bash
     $ pod install
     ```
-    
+
     Again, you may have to reset some build settings in order to silence warnings from Cocoapods.
-    
+
 1. Open up `SwiftDIApp.xcworkspace`. If you expand the `Pods` project, you'll see a directory for 'Development Pods'; expand this and you'll see the the `SwiftDIHLP` pod.
 
 
@@ -168,7 +202,7 @@ Open up `SwiftDIHLP.xcworkspace`. Go to `Tests > SwiftDIHLPTests > SwiftDIHLPTes
 import Quick
 import Nimble
 @testable import SwiftDIHLP
-	
+
 class SwiftDIHLPTests: QuickSpec {
     override func spec() {
         describe("it works") {
@@ -215,15 +249,15 @@ Type `Cmd-R` to run the app, and once the simulator launches and runs, you shoul
 
 ## Contract Tests
 
-### setting up contract tests in the HLP module
+### Setting up contract tests in the HLP module
 
-- You'll need to write your contract tests using `XCTest` rather than `Quick/Nimble` (until and unless we can figure out how to import `Quick/Nimble` into client projects.
+- You'll need to write your contract tests using `XCTest` rather than `Quick/Nimble` (until and unless we can figure out how to import `Quick/Nimble` into client projects).
 - Your test class needs to use the `open` access modifier (not `public`), because we're going to be subclassing it outside its module.
 - Include your contract tests (such as tests for repositories) under the Sources directory hierarchy of your high level policy module. E.g. `SwiftDIHLP/Sources/SwiftDIHLP/Contracts/RepositoryTests.swift`
 - Add `${PLATFORM_DIR}/Developer/Library/Frameworks` to the HPL module's 'Framework Search Paths' build setting.
 - Link the high level policy against `XCTest.framework`.
 
-### importing contract tests in the client module
+### Importing contract tests in the client module
 
 - If you're using Cocoapods to import the HLP into the client module:
     - Add `${PLATFORM_DIR}/Developer/Library/Frameworks` to the 'Framework Search Paths' build setting for **both** the client module's target as well as the HLP Pod's target.
