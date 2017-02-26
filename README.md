@@ -40,9 +40,9 @@ With the release of Swift as an open-source language with a Linux runtime, Swift
     If you examine the contents of the `SwiftDI` directory, you should now see the following five projects:
 
       - [`SwiftDIHLP`](https://github.com/alexbasson/SwiftDIHLP): The high level policy module containing all of the reusable business logic.
-      - [`SwiftDIApp`](https://github.com/alexbasson/SwiftDIAPI): An iOS app using `SwiftDIHLP` for all high level policy.
+      - [`SwiftDIApp`](https://github.com/alexbasson/SwiftDIApp): An iOS app using `SwiftDIHLP` for all high level policy.
       - [`SwiftDIWeb`](https://github.com/alexbasson/SwiftDIWeb): A web app, built using the [Kitura](http://www.kitura.io) web framework, using `SwiftDIHLP` for all high level policy.
-      - [`SwiftDIAPI`](https://github.com/alexbasson/SwiftDIApp): A RESTful HTTP API, built using the [Kitura](http://www.kitura.io) web framework, using `SwiftDIHLP` for all high level policy.
+      - [`SwiftDIAPI`](https://github.com/alexbasson/SwiftDIAPI): A RESTful HTTP API, built using the [Kitura](http://www.kitura.io) web framework, using `SwiftDIHLP` for all high level policy.
       - [`SwiftDIWebRepositories`](https://github.com/alexbasson/SwiftDIWebRepositories): A library containing repository implementations for use in the web-based projects.
 
 ### Building and running the projects
@@ -66,89 +66,84 @@ For this project, we'll employ a hybrid approach: We'll make our high-level poli
 
 We'll call this project `SwiftDI`; feel free to use whatever name you want, and replace all mentions of "SwiftDI" with your project name.
 
-1. Create a new parent directory to hold the various related projects.
+### Create the parent directory
+
+Create a new parent directory to hold the various related projects.
+
+```bash
+$ mkdir SwiftDI
+$ cd SwiftDI
+```
+
+### Create the High-Level Policy module
+
+For the High Level Policy (HLP):
+
+1. Create a directory for the high level policy and `cd` into it:
 
     ```bash
-    $ mkdir SwiftDI
-    $ cd SwiftDI
+    $ mkdir SwiftDIHLP
+    $ cd SwiftDIHLP
     ```
 
-1. For the High Level Policy (HLP):
+1. Create a Swift package and corresponding Xcode project (this also initializes `SwiftDIHLP` as a git repository):
 
-    1. Create a directory for the high level policy and `cd` into it:
+    ```bash
+    $ swift package init
+    ```
 
-        ```bash
-        $ mkdir SwiftDIHLP
-        $ cd SwiftDIHLP        
-        ```
+1. Edit `Package.swift` to add [Quick](https://github.com/Quick/Quick) and [Nimble](https://github.com/Quick/Nimble) as dependencies:
 
-    1. Create a Swift package and corresponding Xcode project (this also initializes `SwiftDIHLP` as a git repository):
+    ```swift
+    // Package.swift
+    import PackageDescription
 
-        ```bash
-        $ swift package init
-        $ swift package generate-xcodeproj
-        ```
+    let package = Package(
+        name: "SwiftDIHLP",
+        dependencies: [
+            .Package(url: "https://github.com/Quick/Quick.git", majorVersion: 1),
+            .Package(url: "https://github.com/Quick/Nimble.git", majorVersion: 6)
+        ]
+    )
+    ```
 
-    1. Initialize a Podfile:
+1. Build the package; since this is the initial build, it will download the dependencies, so this may take a few minutes:
 
-        ```bash
-        $ pod init
-        ```
+    ```bash
+    $ swift build
+    ```
 
-    1. Edit `Podfile` to pull `Quick` and `Nimble` into the HLP module:
+1. Create `SwiftDIHLP.podspec` and edit it to look something like this:
 
-        ```ruby
-        target 'SwiftDIHLP' do
-          use_frameworks!
+    ```ruby
+    # SwiftDIHLP.podspec
+    Pod::Spec.new do |s|
+      s.name = 'SwiftDIHLP'
+      s.version = '0.0.1'
+      s.license = '<LICENSE>'
+      s.summary = 'SwiftDI high level policy'
+      s.homepage = 'https://github.com/<PATH_TO_REPO>'
+      s.ios.deployment_target = '8.0'
+      s.source = { path: '.' }
+      s.authors = { '<AUTHOR_NAME>' => '<AUTHOR_EMAIL>' }
+      s.source_files = 'Sources/**/*.swift'
+    end
+    ```
 
-          target 'SwiftDIHLPTests' do
-            inherit! :search_paths
+1. Creating an `.xcodeproj` file is optional. It allows you to edit the module using an IDE such as Xcode or AppCode. To generate an `.xcodeproj` file:
 
-            pod 'Quick'
-            pod 'Nimble'
-          end
+    ```bash
+    $ swift package generate-xcodeproj
+    ```
 
-        end        
-        ```
+That should complete the initial creation of the high-level policy module; move on to creating the app.
 
-        Install the pods:
+### Creating the iOS App
 
-        ```
-        $ pod install
-        ```
-
-        **N.B.** You may get some warnings regarding the `LD_RUNPATH_SEARCH_PATHS`. To fix this, open up `SwiftDIHLP.xcworkspace` in Xcode, and for each of the two targets under the `SwiftDIHLP` project (namely `SwiftDIHLP` and `SwiftDIHLPTests`), do the following:
-
-        - Click on "Build Settings"
-        - Search for "LD\_RUNPATH\_SEARCH\_PATHS"
-        - Double-click on the value for the setting
-        - Add "$(inherited)" to the existing values
-
-        Once you've done this for each of the targets, run `$ pod install` again; you should see no warnings.
-
-    1. Create `SwiftDIHLP.podspec` and edit it to look something like this:
-
-        ```ruby
-		Pod::Spec.new do |s|
-		    s.name = 'SwiftDIHLP'
-		    s.version = '0.0.1'
-		    s.license = '<LICENSE>'
-		    s.summary = 'SwiftDI high level policy'
-		    s.homepage = 'https://github.com/<PATH_TO_REPO>'
-		    s.ios.deployment_target = '8.0'
-		    s.source = { path: '.' }
-		    s.authors = { '<AUTHOR_NAME>' => '<AUTHOR_EMAIL>' }
-		    s.source_files = 'Sources/**/*.swift'
-		end
-        ```
-
-        That should complete the initial creation of the high-level policy module; move on to creating the app.        
-
-1. For the iOS App, create a new Xcode project (`SwiftDIApp`).
+1. From the root of the `SwiftDI` project, create a new Xcode project (`SwiftDIApp`).
 
     - Use the 'iOS Single View App' template.
     - Make sure the box to include unit tests is **checked**.
-    - Make sure the box to create a new git repository is **unchecked**.
 
 1. `cd` into the App's directory and create a `Podfile`:
 
@@ -183,7 +178,7 @@ We'll call this project `SwiftDI`; feel free to use whatever name you want, and 
     $ pod install
     ```
 
-    Again, you may have to reset some build settings in order to silence warnings from Cocoapods.
+    You may have to reset some build settings in order to silence warnings from Cocoapods.
 
 1. Open up `SwiftDIApp.xcworkspace`. If you expand the `Pods` project, you'll see a directory for 'Development Pods'; expand this and you'll see the the `SwiftDIHLP` pod.
 
